@@ -271,26 +271,14 @@ def parse_product(model, url):
         price = parse_price(text)
 
 
-    color = model.split(" - ")[-1] if " - " in model else None
+    # Kathmandu zet kleur meestal in de modelnaam:
+    # "Rab Kangri GTX - Black"
+    # "Patagonia Triolet - Cascade Green"
 
-    color_patterns = [
-        r"kleur\s*:?\s*([A-Za-zÀ-ÿ0-9 /&\-]+)",
-        r"color\s*:?\s*([A-Za-zÀ-ÿ0-9 /&\-]+)",
-    ]
+    color = None
 
-    for pattern in color_patterns:
-
-        match = re.search(
-            pattern,
-            text,
-            flags=re.I
-        )
-
-        if match:
-            color = normalize_text(
-                match.group(1)
-            )
-            break
+    if " - " in model:
+        color = model.split(" - ", 1)[1].strip()
 
 
     sizes = find_sizes(text)
