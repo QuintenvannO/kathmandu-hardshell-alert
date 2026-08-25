@@ -321,4 +321,16 @@ def parse_product(model, url):
 # ============================================================
 
 def load_state():
-        
+    
+    if not STATE_FILE.exists():
+        return {}
+
+    try:
+        return json.loads(
+            STATE_FILE.read_text(
+                encoding="utf-8"
+            )
+        )
+
+    except Exception:
+        return {}        
