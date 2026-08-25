@@ -333,4 +333,211 @@ def load_state():
         )
 
     except Exception:
-        return {}        
+        return {}      
+        
+def save_state(state):
+
+    STATE_FILE.write_text(
+        json.dumps(
+            state,
+            indent=2,
+            ensure_ascii=False
+        ),
+        encoding="utf-8",
+    )
+
+
+# ============================================================
+# ALERT LOGICA
+# ============================================================
+
+def product_key(product):
+    return product["url"]
+
+
+def should_alert(product, old):
+
+    price = product["price"]
+
+    if price is None:
+        return False, None
+
+    # Geen melding als product boven €400 staat,
+    # tenzij de prijs significant is gedaald.
+    under_limit = price <= MAX_PRICE
+
+    price_drop = False
+    drop_percent = 0
+
+    if old and old.get("price"):
+
+        old_price = old["price"]
+
+        if old_price > price:
+
+            drop_percent = (
+                (old_price - price)
+                / old_price
+                * 100
+            )
+
+            if drop_percent >= MIN_PRICE_DROP_PERCENT:
+                price_drop = True
+
+    # Maat M/L gevonden.
+    available_sizes = (
+        set(product["sizes"])
+        & SIZES
+    )
+
+    has_target_size = bool(
+        available_sizes
+    )
+
+    if under_limit and has_target_size:
+        return True, "PRICE"
+
+    if price_drop and has_target_size:
+        return True, "DROP"
+
+    return False, None
+
+
+def format_alert(product, alert_type, old):
+
+    model = product["model"]
+    color = product["color"] or "kleur onbekend"
+    price = product["price"]
+
+    available_sizes = sorted(
+        set(product["sizes"]) & SIZES
+    )
+
+    if alert_type == "PRICE":
+        headline = "🔥 HARDSHELL DEAL"
+
+    else:
+        headline = "📉 HARDSHELL PRIJS GEDAALD"
+
+    old_price_text = ""
+
+    if old and old.get("price"):
+
+        old_price = old["price"]
+
+        if old_price > price:
+
+            old_price_text = (
+                f"\nWas: €{old_price:.2f}"
+            )
+
+    return (
+        f"{headline}\n\n"
+        f"{model}\n"
+        f"Kleur: {color}\n"
+        f"Maat: {', '.join(available_sizes)}\n\n"
+        f"€{price:.2f}"
+        f"{old_price_text}\n\n"
+        f"{product['url']}"
+    )
+
+
+# ============================================================
+# MAIN
+# ============================================================
+
+def main():
+
+    print("===================================")
+    print("Kathmandu Hardshell Price Monitor")
+    print("===================================")
+
+    state = load_state()
+
+    products = search_kathmandu_products()
+
+    print(
+        f"{len(products)} productpagina's gevonden."
+    )
+
+    current_state = dict(state)
+
+    alerts = []
+
+    for product_ref in products:
+
+        try:
+
+            product = parse_product(
+                product_ref["model"],
+                product_ref["url"]
+            )
+
+            print(
+                f"{product['model']} | "
+                f"{product['color']} | "
+                f"€{product['price']} | "
+                f"M/L: {product['sizes']}"
+            )
+
+            key = product_key(product)
+
+            old = state.get(key)
+
+            should, alert_type = should_alert(
+                product,
+                old
+            )
+
+            if should:
+
+                alerts.append(
+                    format_alert(
+                        product,
+                        alert_type,
+                        old
+                    )
+                )
+
+            current_state[key] = {
+                "model": product["model"],
+                "url": product["url"],
+                "color": product["color"],
+                "price": product["price"],
+                "sizes": product["sizes"],
+                "checked_at": time.time(),
+            }
+
+        except Exception as exc:
+
+            print(
+                f"FOUT bij {product_ref['url']}: "
+                f"{exc}"
+            )
+
+    # --------------------------------------------------------
+    # Telegram
+    # --------------------------------------------------------
+
+    for alert in alerts:
+
+        try:
+            telegram_message(alert)
+        except Exception as exc:
+            print(
+                f"Telegram fout: {exc}"
+            )
+
+    # --------------------------------------------------------
+    # State opslaan
+    # --------------------------------------------------------
+
+    save_state(current_state)
+
+    print(
+        f"Klaar. {len(alerts)} alerts verstuurd."
+    )
+
+
+if __name__ == "__main__":
+    main()
