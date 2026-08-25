@@ -215,21 +215,7 @@ def search_kathmandu_products():
         },
 
     ]
-def get_color_from_url(url):
 
-    colors = {
-        "blk": "Black",
-        "tmb": "Tempest Blue",
-        "dpl": "Deep Lake",
-        "asa": "Anthracite",
-        "casg": "Cascade Green",
-    }
-
-    for code, name in colors.items():
-        if f"-{code}-" in url:
-            return name
-
-    return None
     
 def parse_product(model, url):
 
@@ -461,7 +447,6 @@ def main():
 
             print(
                 f"{product['model']} | "
-                f"{product['color']} | "
                 f"€{product['price']} | "
                 f"M/L: {product['sizes']}"
             )
