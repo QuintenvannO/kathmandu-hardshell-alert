@@ -253,7 +253,7 @@ def parse_product(model, url):
 print("PRIJS ELEMENTEN:")
 for element in price_candidates[:10]:
     print(element)
-    )
+    
 
     for element in price_candidates:
 
