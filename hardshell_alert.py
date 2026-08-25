@@ -458,7 +458,8 @@ def main():
     print("===================================")
 
     state = load_state()
-
+    print("DEBUG STATE TYPE:", type(state))
+    print("DEBUG STATE:", state)
     products = search_kathmandu_products()
 
     print(
