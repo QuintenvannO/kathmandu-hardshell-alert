@@ -245,9 +245,14 @@ def parse_product(model, url):
     price = None
 
     price_candidates = soup.select(
-        '[class*="price"], '
-        '[class*="Price"], '
-        '[data-price]'
+    '[class*="price"], '
+    '[class*="Price"], '
+    '[data-price]'
+)
+
+print("PRIJS ELEMENTEN:")
+for element in price_candidates[:10]:
+    print(element)
     )
 
     for element in price_candidates:
