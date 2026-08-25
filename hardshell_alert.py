@@ -280,7 +280,7 @@ def parse_product(model, url):
         price = parse_price(text)
 
 
-    color = get_color_from_url(url)
+    color = model.split(" - ")[-1] if " - " in model else None
 
     color_patterns = [
         r"kleur\s*:?\s*([A-Za-zÀ-ÿ0-9 /&\-]+)",
@@ -545,7 +545,7 @@ def main():
     # --------------------------------------------------------
     # State opslaan
     # --------------------------------------------------------
-
+print(current_state)
     save_state(current_state)
 
     print(
