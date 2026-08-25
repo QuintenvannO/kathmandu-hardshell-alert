@@ -245,10 +245,8 @@ def parse_product(model, url):
     price = None
 
     price_candidates = soup.select(
-        '[class*="price"], '
-        '[class*="Price"], '
-        '[data-price]'
-    )
+    '#jq-productpagina-prijs .amount'
+)
 
     print("PRIJS ELEMENTEN:")
     for element in price_candidates[:10]:
@@ -270,7 +268,7 @@ def parse_product(model, url):
         price = parse_price(text)
 
 
-    color = None
+    color = get_color_from_url(url)
 
     color_patterns = [
         r"kleur\s*:?\s*([A-Za-zÀ-ÿ0-9 /&\-]+)",
