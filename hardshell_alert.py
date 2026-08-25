@@ -462,10 +462,8 @@ def main():
     if not isinstance(state, dict):
         state = {}
 
-products = search_kathmandu_products()
- 
     products = search_kathmandu_products()
-
+ 
     print(
         f"{len(products)} productpagina's gevonden."
     )
