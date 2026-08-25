@@ -2,19 +2,17 @@
   "https://www.kathmandu.nl/rab-latok-alpine-gtx-jacket-qwi-39-dpl-026735": {
     "model": "Rab Latok Alpine GTX",
     "url": "https://www.kathmandu.nl/rab-latok-alpine-gtx-jacket-qwi-39-dpl-026735",
-    "color": null,
     "price": 629.95,
     "sizes": [
       "L",
       "M",
       "S"
     ],
-    "checked_at": 1787659665.1546338
+    "checked_at": 1787660407.0786421
   },
   "https://www.kathmandu.nl/rab-latok-mountain-gtx-jacket-qwh-24-asa-029095": {
     "model": "Rab Latok Mountain GTX",
     "url": "https://www.kathmandu.nl/rab-latok-mountain-gtx-jacket-qwh-24-asa-029095",
-    "color": null,
     "price": 549.0,
     "sizes": [
       "M",
@@ -22,12 +20,11 @@
       "XL",
       "XXL"
     ],
-    "checked_at": 1787659667.8878143
+    "checked_at": 1787660409.8965962
   },
   "https://www.kathmandu.nl/patagonia-triolet-jkt-83403-casg-026684": {
     "model": "Patagonia Triolet - Cascade Green",
     "url": "https://www.kathmandu.nl/patagonia-triolet-jkt-83403-casg-026684",
-    "color": "Cascade Green",
     "price": 419.0,
     "sizes": [
       "L",
@@ -36,36 +33,33 @@
       "XL",
       "XXL"
     ],
-    "checked_at": 1787659670.6468558
+    "checked_at": 1787660412.7057862
   },
   "https://www.kathmandu.nl/patagonia-triolet-jacket-83403-blk-021464": {
     "model": "Patagonia Triolet - Black",
     "url": "https://www.kathmandu.nl/patagonia-triolet-jacket-83403-blk-021464",
-    "color": "Black",
     "price": 419.0,
     "sizes": [
       "L",
       "M",
       "S"
     ],
-    "checked_at": 1787659673.4508672
+    "checked_at": 1787660415.5005577
   },
   "https://www.kathmandu.nl/rab-kangri-gtx-jacket-qwi-48-tmb-028204": {
     "model": "Rab Kangri GTX - TMB",
     "url": "https://www.kathmandu.nl/rab-kangri-gtx-jacket-qwi-48-tmb-028204",
-    "color": "TMB",
     "price": 399.0,
     "sizes": [
       "M",
       "S",
       "XL"
     ],
-    "checked_at": 1787659676.1911345
+    "checked_at": 1787660418.2822978
   },
   "https://www.kathmandu.nl/rab-kangri-gtx-jacket-qwi-48-blk-026739": {
     "model": "Rab Kangri GTX - Black",
     "url": "https://www.kathmandu.nl/rab-kangri-gtx-jacket-qwi-48-blk-026739",
-    "color": "Black",
     "price": 399.0,
     "sizes": [
       "M",
@@ -73,12 +67,11 @@
       "XL",
       "XXL"
     ],
-    "checked_at": 1787659678.9306672
+    "checked_at": 1787660421.085934
   },
   "https://www.kathmandu.nl/rab-latok-gtx-jacket-qwi-38-tmb-026734": {
     "model": "Rab Latok GTX",
     "url": "https://www.kathmandu.nl/rab-latok-gtx-jacket-qwi-38-tmb-026734",
-    "color": null,
     "price": 699.0,
     "sizes": [
       "L",
@@ -86,6 +79,6 @@
       "S",
       "XL"
     ],
-    "checked_at": 1787659681.6811843
+    "checked_at": 1787660423.8750896
   }
 }
