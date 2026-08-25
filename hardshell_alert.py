@@ -131,14 +131,11 @@ def normalize_url(url):
 
 
 def parse_price(text):
-     if not text:
+
+    if not text:
         return None
 
     text = text.strip()
-
-    # Europese prijsnotatie:
-    # 629,95 -> 629.95
-    # 399,00 -> 399.00
 
     match = re.search(
         r'(\d{1,4}(?:[.,]\d{2}))',
@@ -153,8 +150,7 @@ def parse_price(text):
     value = value.replace(",", ".")
 
     return float(value)
-
-
+    
 def find_sizes(text):
     """
     Zoek naar expliciete maatvermeldingen.
