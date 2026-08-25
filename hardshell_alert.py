@@ -399,7 +399,7 @@ def should_alert(product, old):
         available_sizes
     )
 
-    if under_limit and has_target_size:
+    if old is None and under_limit and has_target_size:
         return True, "PRICE"
 
     if price_drop and has_target_size:
