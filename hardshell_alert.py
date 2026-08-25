@@ -271,14 +271,7 @@ def parse_product(model, url):
         price = parse_price(text)
 
 
-    # Kathmandu zet kleur meestal in de modelnaam:
-    # "Rab Kangri GTX - Black"
-    # "Patagonia Triolet - Cascade Green"
 
-    color = None
-
-    if " - " in model:
-        color = model.split(" - ", 1)[1].strip()
 
 
     sizes = find_sizes(text)
@@ -304,7 +297,6 @@ def parse_product(model, url):
         "url": url,
         "title": title,
         "price": price,
-        "color": color,
         "sizes": sorted(sizes),
         "online_unavailable": online_unavailable,
     }
@@ -399,7 +391,6 @@ def should_alert(product, old):
 def format_alert(product, alert_type, old):
 
     model = product["model"]
-    color = product["color"] or "kleur onbekend"
     price = product["price"]
 
     available_sizes = sorted(
@@ -427,7 +418,6 @@ def format_alert(product, alert_type, old):
     return (
         f"{headline}\n\n"
         f"{model}\n"
-        f"Kleur: {color}\n"
         f"Maat: {', '.join(available_sizes)}\n\n"
         f"€{price:.2f}"
         f"{old_price_text}\n\n"
