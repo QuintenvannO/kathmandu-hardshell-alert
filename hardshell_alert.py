@@ -501,7 +501,6 @@ def main():
             current_state[key] = {
                 "model": product["model"],
                 "url": product["url"],
-                "color": product["color"],
                 "price": product["price"],
                 "sizes": product["sizes"],
                 "checked_at": time.time(),
