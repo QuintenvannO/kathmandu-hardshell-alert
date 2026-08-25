@@ -38,7 +38,15 @@ SIZES = {"M", "L"}
 # Meldingen:
 # - Iedere aanbieding onder deze prijs -> melding
 # - Daarnaast melding bij grote prijsdaling.
-MAX_PRICE = 400.00
+PRICE_LIMITS = {
+    "Rab Kangri GTX - Black": 375,
+    "Rab Kangri GTX - TMB": 375,
+    "Patagonia Triolet - Black": 380,
+    "Patagonia Triolet - Cascade Green": 380,
+    "Rab Latok Mountain GTX": 450,
+    "Rab Latok Alpine GTX": 500,
+    "Rab Latok GTX": 500,
+}
 MIN_PRICE_DROP_PERCENT = 10.0
 
 # Alleen herenproducten.
@@ -333,9 +341,14 @@ def should_alert(product, old):
     if price is None:
         return False, None
 
-    # Geen melding als product boven €400 staat,
+    # Geen melding als product boven zijn persoonlijke limiet staat,
     # tenzij de prijs significant is gedaald.
-    under_limit = price <= MAX_PRICE
+    max_price = PRICE_LIMITS.get(
+    product["model"],
+    400
+)
+
+under_limit = price <= max_price
 
     price_drop = False
     drop_percent = 0
