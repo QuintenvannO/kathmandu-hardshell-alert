@@ -224,3 +224,101 @@ def search_kathmandu_products():
         },
 
     ]
+
+def parse_product(model, url):
+
+    html = get_page(url)
+
+    soup = BeautifulSoup(html, "html.parser")
+
+    text = normalize_text(
+        soup.get_text(" ", strip=True)
+    )
+
+    title = None
+
+    if soup.title:
+        title = normalize_text(
+            soup.title.get_text()
+        )
+
+    price = None
+
+    price_candidates = soup.select(
+        '[class*="price"], '
+        '[class*="Price"], '
+        '[data-price]'
+    )
+
+    for element in price_candidates:
+
+        candidate = normalize_text(
+            element.get_text(" ", strip=True)
+        )
+
+        parsed = parse_price(candidate)
+
+        if parsed is not None:
+            price = parsed
+            break
+
+    if price is None:
+        price = parse_price(text)
+
+
+    color = None
+
+    color_patterns = [
+        r"kleur\s*:?\s*([A-Za-zÀ-ÿ0-9 /&\-]+)",
+        r"color\s*:?\s*([A-Za-zÀ-ÿ0-9 /&\-]+)",
+    ]
+
+    for pattern in color_patterns:
+
+        match = re.search(
+            pattern,
+            text,
+            flags=re.I
+        )
+
+        if match:
+            color = normalize_text(
+                match.group(1)
+            )
+            break
+
+
+    sizes = find_sizes(text)
+
+
+    unavailable_words = [
+        "uitverkocht",
+        "niet beschikbaar",
+        "out of stock",
+        "sold out",
+    ]
+
+    lower_text = text.lower()
+
+    online_unavailable = any(
+        word in lower_text
+        for word in unavailable_words
+    )
+
+
+    return {
+        "model": model,
+        "url": url,
+        "title": title,
+        "price": price,
+        "color": color,
+        "sizes": sorted(sizes),
+        "online_unavailable": online_unavailable,
+    }
+
+# ============================================================
+# STATE
+# ============================================================
+
+def load_state():
+        
