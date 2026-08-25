@@ -183,22 +183,44 @@ def find_sizes(text):
 def search_kathmandu_products():
     """
     Vaste Kathmandu-productpagina's controleren.
+    Elke kleurvariant heeft een eigen URL.
     """
 
     return [
 
         {
-            "model": "Rab Latok Alpine",
-            "url": "https://www.kathmandu.nl/rab-latok-alpine-gtx-jacket"
+            "model": "Rab Latok Alpine GTX",
+            "url": "https://www.kathmandu.nl/rab-latok-alpine-gtx-jacket-qwi-39-dpl-026735"
         },
 
         {
-            "model": "Rab Latok Mountain",
-            "url": "https://www.kathmandu.nl/rab-latok-mountain-gtx-jacket"
+            "model": "Rab Latok Mountain GTX",
+            "url": "https://www.kathmandu.nl/rab-latok-mountain-gtx-jacket-qwh-24-asa-029095"
         },
 
         {
-            "model": "Patagonia Triolet",
-            "url": "https://www.kathmandu.nl/patagonia-triolet-jacket"
+            "model": "Patagonia Triolet - Cascade Green",
+            "url": "https://www.kathmandu.nl/patagonia-triolet-jkt-83403-casg-026684"
         },
+
+        {
+            "model": "Patagonia Triolet - Black",
+            "url": "https://www.kathmandu.nl/patagonia-triolet-jacket-83403-blk-021464"
+        },
+
+        {
+            "model": "Rab Kangri GTX - TMB",
+            "url": "https://www.kathmandu.nl/rab-kangri-gtx-jacket-qwi-48-tmb-028204"
+        },
+
+        {
+            "model": "Rab Kangri GTX - Black",
+            "url": "https://www.kathmandu.nl/rab-kangri-gtx-jacket-qwi-48-blk-026739"
+        },
+
+        {
+            "model": "Rab Latok GTX",
+            "url": "https://www.kathmandu.nl/rab-latok-gtx-jacket-qwi-38-tmb-026734"
+        },
+
     ]
