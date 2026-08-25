@@ -457,10 +457,10 @@ def main():
     print("Kathmandu Hardshell Price Monitor")
     print("===================================")
 
-   state = load_state()
+    state = load_state()
 
-   if not isinstance(state, dict):
-    state = {}
+    if not isinstance(state, dict):
+        state = {}
 
 products = search_kathmandu_products()
  
