@@ -545,7 +545,7 @@ def main():
     # --------------------------------------------------------
     # State opslaan
     # --------------------------------------------------------
-print(current_state)
+    print(current_state)
     save_state(current_state)
 
     print(
