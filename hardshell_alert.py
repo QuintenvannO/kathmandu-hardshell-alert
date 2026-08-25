@@ -263,10 +263,7 @@ def parse_product(model, url):
     '#jq-productpagina-prijs .amount'
 )
 
-    print("PRIJS ELEMENTEN:")
-    for element in price_candidates[:10]:
-        print(element)
-
+  
     for element in price_candidates:
 
         candidate = normalize_text(
