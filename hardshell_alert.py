@@ -492,23 +492,23 @@ def main():
 
             old = state.get(key)
 
-    should, alert_type = should_alert(
-        product,
-        old
-    )
+            should, alert_type = should_alert(
+                product,
+                old
+            )
 
-    print(
-        "DEBUG ALERT:",
-        product["model"],
-        "OLD:",
-        old,
-        "NEW:",
-        product,
-        "SHOULD:",
-        should,
-        "TYPE:",
-        alert_type
-    )
+            print(
+                "DEBUG ALERT:",
+                product["model"],
+                "OLD:",
+                old,
+                "NEW:",
+                product,
+                "SHOULD:",
+                should,
+                "TYPE:",
+                alert_type
+            )
 
             if should:
 
