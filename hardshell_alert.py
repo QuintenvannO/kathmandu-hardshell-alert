@@ -348,7 +348,7 @@ def should_alert(product, old):
     400
 )
 
-under_limit = price <= max_price
+    under_limit = price <= max_price
 
     price_drop = False
     drop_percent = 0
