@@ -83,52 +83,90 @@
   },
   "Kathmandu|https://www.kathmandu.nl/patagonia-triolet-jacket-83403-blk-021464": {
     "store": "Kathmandu",
-    "model": "Patagonia Triolet",
+    "name": "Patagonia Triolet Black",
     "url": "https://www.kathmandu.nl/patagonia-triolet-jacket-83403-blk-021464",
-    "price": 419.0,
+    "price": null,
     "shipping": 0.0,
-    "total_price": 419.0,
-    "size_m_available": true,
-    "checked_at": 1789994244.7120461
+    "total_price": null,
+    "size_m_available": false,
+    "is_triolet": true,
+    "is_mens": true
   },
   "Kathmandu|https://www.kathmandu.nl/patagonia-triolet-jkt-83403-casg-026684": {
     "store": "Kathmandu",
-    "model": "Patagonia Triolet",
+    "name": "Patagonia Triolet Cascade Green",
     "url": "https://www.kathmandu.nl/patagonia-triolet-jkt-83403-casg-026684",
-    "price": 419.0,
+    "price": null,
     "shipping": 0.0,
-    "total_price": 419.0,
-    "size_m_available": true,
-    "checked_at": 1789994247.4403467
+    "total_price": null,
+    "size_m_available": false,
+    "is_triolet": true,
+    "is_mens": true
   },
   "Ronald Adventure Shop|https://www.ronaldadventureshop.nl/patagonia-triolet-jacket-veelzijdige-3-laags-gore-tex-regenjas-voor-heren.html": {
     "store": "Ronald Adventure Shop",
-    "model": "Patagonia Triolet",
+    "name": "Patagonia Triolet Jacket",
     "url": "https://www.ronaldadventureshop.nl/patagonia-triolet-jacket-veelzijdige-3-laags-gore-tex-regenjas-voor-heren.html",
     "price": 336.0,
     "shipping": 0.0,
     "total_price": 336.0,
-    "size_m_available": true,
-    "checked_at": 1789994249.9636388
+    "size_m_available": false,
+    "is_triolet": true,
+    "is_mens": true
   },
   "Bergzeit|https://www.bergzeit.nl/p/patagonia-heren-triolet-jas/1119573/": {
     "store": "Bergzeit",
-    "model": "Patagonia Triolet",
+    "name": "Patagonia Triolet Heren",
     "url": "https://www.bergzeit.nl/p/patagonia-heren-triolet-jas/1119573/",
-    "price": 20000.0,
-    "shipping": null,
-    "total_price": null,
-    "size_m_available": true,
-    "checked_at": 1789994253.7232718
-  },
-  "Bergfreunde|https://www.bergfreunde.nl/patagonia-triolet-jacket-regenjas-bf/": {
-    "store": "Bergfreunde",
-    "model": "Patagonia Triolet",
-    "url": "https://www.bergfreunde.nl/patagonia-triolet-jacket-regenjas-bf/",
     "price": null,
     "shipping": null,
     "total_price": null,
     "size_m_available": true,
-    "checked_at": 1789994256.710453
+    "is_triolet": true,
+    "is_mens": true
+  },
+  "Bergfreunde|https://www.bergfreunde.nl/patagonia-triolet-jacket-regenjas-bf/": {
+    "store": "Bergfreunde",
+    "name": "Patagonia Triolet Jacket",
+    "url": "https://www.bergfreunde.nl/patagonia-triolet-jacket-regenjas-bf/",
+    "price": 419.95,
+    "shipping": 0.0,
+    "total_price": 419.95,
+    "size_m_available": true,
+    "is_triolet": true,
+    "is_mens": true
+  },
+  "Bever|https://www.bever.nl/p/patagonia-triolet-hardshell-jas-B12AE90417.html?colour=2374": {
+    "store": "Bever",
+    "name": "Patagonia Triolet Mid Green",
+    "url": "https://www.bever.nl/p/patagonia-triolet-hardshell-jas-B12AE90417.html?colour=2374",
+    "price": 167.98,
+    "shipping": 0.0,
+    "total_price": 167.98,
+    "size_m_available": true,
+    "is_triolet": true,
+    "is_mens": true
+  },
+  "Bever|https://www.bever.nl/p/patagonia-triolet-hardshell-jas-B12AE90417.html?colour=4168": {
+    "store": "Bever",
+    "name": "Patagonia Triolet Mid Blue",
+    "url": "https://www.bever.nl/p/patagonia-triolet-hardshell-jas-B12AE90417.html?colour=4168",
+    "price": 419.95,
+    "shipping": 0.0,
+    "total_price": 419.95,
+    "size_m_available": true,
+    "is_triolet": true,
+    "is_mens": true
+  },
+  "Bever|https://www.bever.nl/p/patagonia-triolet-hardshell-jas-B12AE90417.html": {
+    "store": "Bever",
+    "name": "Patagonia Triolet",
+    "url": "https://www.bever.nl/p/patagonia-triolet-hardshell-jas-B12AE90417.html",
+    "price": 167.98,
+    "shipping": 0.0,
+    "total_price": 167.98,
+    "size_m_available": true,
+    "is_triolet": true,
+    "is_mens": true
   }
 }
