@@ -89,7 +89,7 @@
     "shipping": 0.0,
     "total_price": 419.0,
     "size_m_available": true,
-    "checked_at": 1789994035.1405299
+    "checked_at": 1789994244.7120461
   },
   "Kathmandu|https://www.kathmandu.nl/patagonia-triolet-jkt-83403-casg-026684": {
     "store": "Kathmandu",
@@ -99,7 +99,7 @@
     "shipping": 0.0,
     "total_price": 419.0,
     "size_m_available": true,
-    "checked_at": 1789994037.9140022
+    "checked_at": 1789994247.4403467
   },
   "Ronald Adventure Shop|https://www.ronaldadventureshop.nl/patagonia-triolet-jacket-veelzijdige-3-laags-gore-tex-regenjas-voor-heren.html": {
     "store": "Ronald Adventure Shop",
@@ -109,7 +109,7 @@
     "shipping": 0.0,
     "total_price": 336.0,
     "size_m_available": true,
-    "checked_at": 1789994040.442512
+    "checked_at": 1789994249.9636388
   },
   "Bergzeit|https://www.bergzeit.nl/p/patagonia-heren-triolet-jas/1119573/": {
     "store": "Bergzeit",
@@ -119,7 +119,7 @@
     "shipping": null,
     "total_price": null,
     "size_m_available": true,
-    "checked_at": 1789994043.4167337
+    "checked_at": 1789994253.7232718
   },
   "Bergfreunde|https://www.bergfreunde.nl/patagonia-triolet-jacket-regenjas-bf/": {
     "store": "Bergfreunde",
@@ -129,6 +129,6 @@
     "shipping": null,
     "total_price": null,
     "size_m_available": true,
-    "checked_at": 1789994046.62552
+    "checked_at": 1789994256.710453
   }
 }
