@@ -80,5 +80,55 @@
       "XL"
     ],
     "checked_at": 1789986487.220695
+  },
+  "Kathmandu|https://www.kathmandu.nl/patagonia-triolet-jacket-83403-blk-021464": {
+    "store": "Kathmandu",
+    "model": "Patagonia Triolet",
+    "url": "https://www.kathmandu.nl/patagonia-triolet-jacket-83403-blk-021464",
+    "price": 419.0,
+    "shipping": 0.0,
+    "total_price": 419.0,
+    "size_m_available": true,
+    "checked_at": 1789994035.1405299
+  },
+  "Kathmandu|https://www.kathmandu.nl/patagonia-triolet-jkt-83403-casg-026684": {
+    "store": "Kathmandu",
+    "model": "Patagonia Triolet",
+    "url": "https://www.kathmandu.nl/patagonia-triolet-jkt-83403-casg-026684",
+    "price": 419.0,
+    "shipping": 0.0,
+    "total_price": 419.0,
+    "size_m_available": true,
+    "checked_at": 1789994037.9140022
+  },
+  "Ronald Adventure Shop|https://www.ronaldadventureshop.nl/patagonia-triolet-jacket-veelzijdige-3-laags-gore-tex-regenjas-voor-heren.html": {
+    "store": "Ronald Adventure Shop",
+    "model": "Patagonia Triolet",
+    "url": "https://www.ronaldadventureshop.nl/patagonia-triolet-jacket-veelzijdige-3-laags-gore-tex-regenjas-voor-heren.html",
+    "price": 336.0,
+    "shipping": 0.0,
+    "total_price": 336.0,
+    "size_m_available": true,
+    "checked_at": 1789994040.442512
+  },
+  "Bergzeit|https://www.bergzeit.nl/p/patagonia-heren-triolet-jas/1119573/": {
+    "store": "Bergzeit",
+    "model": "Patagonia Triolet",
+    "url": "https://www.bergzeit.nl/p/patagonia-heren-triolet-jas/1119573/",
+    "price": 20000.0,
+    "shipping": null,
+    "total_price": null,
+    "size_m_available": true,
+    "checked_at": 1789994043.4167337
+  },
+  "Bergfreunde|https://www.bergfreunde.nl/patagonia-triolet-jacket-regenjas-bf/": {
+    "store": "Bergfreunde",
+    "model": "Patagonia Triolet",
+    "url": "https://www.bergfreunde.nl/patagonia-triolet-jacket-regenjas-bf/",
+    "price": null,
+    "shipping": null,
+    "total_price": null,
+    "size_m_available": true,
+    "checked_at": 1789994046.62552
   }
 }
