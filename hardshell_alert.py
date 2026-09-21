@@ -1,5 +1,4 @@
 import json
-import os
 import re
 import time
 from pathlib import Path
@@ -14,44 +13,62 @@ from bs4 import BeautifulSoup
 # ============================================================
 
 TARGET_MODEL = "Patagonia Triolet"
-
-# ALLEEN MAAT M
 TARGET_SIZE = "M"
 
-# Maximale TOTALE PRIJS inclusief verzending naar Nederland
 MAX_TOTAL_PRICE = 380.00
-
-# Ook melden wanneer de totale prijs minimaal 10% daalt
 MIN_PRICE_DROP_PERCENT = 10.0
 
-# Statebestand
 STATE_FILE = Path("state.json")
 
-# Tijd tussen requests
 REQUEST_DELAY = 2
 
+TIMEOUT = 25
+
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/140.0.0.0 Safari/537.36"
+    ),
+    "Accept-Language": "nl-NL,nl;q=0.9,en;q=0.8",
+    "Accept": (
+        "text/html,application/xhtml+xml,application/xml;"
+        "q=0.9,image/avif,image/webp,*/*;q=0.8"
+    ),
+}
+
 
 # ============================================================
-# WEBSHOPS
+# PRODUCTPAGINA'S
+#
+# We gebruiken bewust directe productpagina's.
+# Zoekpagina's worden door sommige webshops geblokkeerd.
 # ============================================================
 
-STORES = {
+PRODUCTS = [
 
     # --------------------------------------------------------
     # KATHMANDU
     # --------------------------------------------------------
 
-    "Kathmandu": {
-        "base_url": "https://www.kathmandu.nl",
+    {
+        "store": "Kathmandu",
+        "name": "Patagonia Triolet Black",
+        "url": (
+            "https://www.kathmandu.nl/"
+            "patagonia-triolet-jacket-83403-blk-021464"
+        ),
+        "shipping_mode": "free",
+    },
 
-        "urls": [
-            "https://www.kathmandu.nl/patagonia-triolet-jacket-83403-blk-021464",
-            "https://www.kathmandu.nl/patagonia-triolet-jkt-83403-casg-026684",
-        ],
-
-        # Gratis verzending vanaf €30
-        "free_shipping_from": 30.00,
-        "shipping_cost": 4.95,
+    {
+        "store": "Kathmandu",
+        "name": "Patagonia Triolet Cascade Green",
+        "url": (
+            "https://www.kathmandu.nl/"
+            "patagonia-triolet-jkt-83403-casg-026684"
+        ),
+        "shipping_mode": "free",
     },
 
 
@@ -59,14 +76,15 @@ STORES = {
     # RONALD ADVENTURE SHOP
     # --------------------------------------------------------
 
-    "Ronald Adventure Shop": {
-        "base_url": "https://www.ronaldadventureshop.nl",
-
-        "search_url": (
-            "https://www.ronaldadventureshop.nl/patagonia"
+    {
+        "store": "Ronald Adventure Shop",
+        "name": "Patagonia Triolet Jacket",
+        "url": (
+            "https://www.ronaldadventureshop.nl/"
+            "patagonia-triolet-jacket-veelzijdige-3-laags-"
+            "gore-tex-regenjas-voor-heren.html"
         ),
-
-        # Gratis vanaf €50
+        "shipping_mode": "threshold",
         "free_shipping_from": 50.00,
         "shipping_cost": 5.00,
     },
@@ -76,18 +94,36 @@ STORES = {
     # BEVER
     # --------------------------------------------------------
 
-    "Bever": {
-        "base_url": "https://www.bever.nl",
-
-        "search_url": (
-            "https://www.bever.nl/c/heren/jassen/"
-            "?q=patagonia%20triolet"
+    {
+        "store": "Bever",
+        "name": "Patagonia Triolet Mid Green",
+        "url": (
+            "https://www.bever.nl/"
+            "p/patagonia-triolet-hardshell-jas-B12AE90417.html"
+            "?colour=2374"
         ),
+        "shipping_mode": "free",
+    },
 
-        # Wordt conservatief ingesteld.
-        # Als verzending niet betrouwbaar bepaald kan worden,
-        # wordt GEEN alert gestuurd.
-        "shipping_unknown": True,
+    {
+        "store": "Bever",
+        "name": "Patagonia Triolet Mid Blue",
+        "url": (
+            "https://www.bever.nl/"
+            "p/patagonia-triolet-hardshell-jas-B12AE90417.html"
+            "?colour=4168"
+        ),
+        "shipping_mode": "free",
+    },
+
+    {
+        "store": "Bever",
+        "name": "Patagonia Triolet",
+        "url": (
+            "https://www.bever.nl/"
+            "p/patagonia-triolet-hardshell-jas-B12AE90417.html"
+        ),
+        "shipping_mode": "free",
     },
 
 
@@ -95,15 +131,24 @@ STORES = {
     # ZALANDO
     # --------------------------------------------------------
 
-    "Zalando": {
-        "base_url": "https://www.zalando.nl",
-
-        "search_url": (
-            "https://www.zalando.nl/catalog/?q="
-            "patagonia%20triolet"
+    {
+        "store": "Zalando",
+        "name": "Patagonia Triolet Black",
+        "url": (
+            "https://www.zalando.nl/"
+            "patagonia-triolet-outdoorjas-black-pa941f04b-q11.html"
         ),
+        "shipping_mode": "free",
+    },
 
-        "shipping_unknown": True,
+    {
+        "store": "Zalando",
+        "name": "Patagonia Triolet Black",
+        "url": (
+            "https://www.zalando.nl/"
+            "patagonia-triolet-outdoorjas-black-pa942f04w-q11.html"
+        ),
+        "shipping_mode": "free",
     },
 
 
@@ -111,15 +156,14 @@ STORES = {
     # BERGZEIT
     # --------------------------------------------------------
 
-    "Bergzeit": {
-        "base_url": "https://www.bergzeit.nl",
-
-        "search_url": (
-            "https://www.bergzeit.nl/search?sSearch="
-            "Patagonia%20Triolet"
+    {
+        "store": "Bergzeit",
+        "name": "Patagonia Triolet Heren",
+        "url": (
+            "https://www.bergzeit.nl/"
+            "p/patagonia-heren-triolet-jas/1119573/"
         ),
-
-        "shipping_unknown": True,
+        "shipping_mode": "unknown",
     },
 
 
@@ -127,15 +171,54 @@ STORES = {
     # SNOWLEADER
     # --------------------------------------------------------
 
-    "Snowleader": {
-        "base_url": "https://www.snowleader.nl",
-
-        "search_url": (
-            "https://www.snowleader.nl/nl/"
-            "search?s=Patagonia%20Triolet"
+    {
+        "store": "Snowleader",
+        "name": "Patagonia Triolet Black",
+        "url": (
+            "https://www.snowleader.nl/"
+            "nl/m-s-triolet-jkt-black.html"
         ),
+        "shipping_mode": "unknown",
+    },
 
-        "shipping_unknown": True,
+    {
+        "store": "Snowleader",
+        "name": "Patagonia Triolet Forge Grey / P6 Blue",
+        "url": (
+            "https://www.snowleader.nl/"
+            "nl/m-s-triolet-jkt-forge-grey-w-p6-blue-PATA04615.html"
+        ),
+        "shipping_mode": "unknown",
+    },
+
+    {
+        "store": "Snowleader",
+        "name": "Patagonia Triolet Clement Blue",
+        "url": (
+            "https://www.snowleader.nl/"
+            "nl/m-s-triolet-jkt-clement-blue-PATA04957.html"
+        ),
+        "shipping_mode": "unknown",
+    },
+
+    {
+        "store": "Snowleader",
+        "name": "Patagonia Triolet Caper Green",
+        "url": (
+            "https://www.snowleader.nl/"
+            "nl/m-s-triolet-jkt-caper-green-PATA04958.html"
+        ),
+        "shipping_mode": "unknown",
+    },
+
+    {
+        "store": "Snowleader",
+        "name": "Patagonia Triolet Touring Red",
+        "url": (
+            "https://www.snowleader.nl/"
+            "nl/m-s-triolet-jkt-touring-red-PATA03711.html"
+        ),
+        "shipping_mode": "unknown",
     },
 
 
@@ -143,15 +226,34 @@ STORES = {
     # EKOSPORT
     # --------------------------------------------------------
 
-    "Ekosport": {
-        "base_url": "https://www.ekosport.nl",
-
-        "search_url": (
-            "https://www.ekosport.nl/search/"
-            "?q=Patagonia%20Triolet"
+    {
+        "store": "Ekosport",
+        "name": "Patagonia Triolet Amanita Red",
+        "url": (
+            "https://www.ekosport.nl/"
+            "patagonia-m-s-triolet-jacket-p-K104172"
         ),
+        "shipping_mode": "unknown",
+    },
 
-        "shipping_unknown": True,
+    {
+        "store": "Ekosport",
+        "name": "Patagonia Triolet Clement Blue",
+        "url": (
+            "https://www.ekosport.nl/"
+            "patagonia-m-s-triolet-jacket-p-K104173"
+        ),
+        "shipping_mode": "unknown",
+    },
+
+    {
+        "store": "Ekosport",
+        "name": "Patagonia Triolet Pine Needle Green",
+        "url": (
+            "https://www.ekosport.nl/"
+            "patagonia-m-s-triolet-jacket-p-9-165868"
+        ),
+        "shipping_mode": "unknown",
     },
 
 
@@ -159,17 +261,14 @@ STORES = {
     # BERGFREUNDE
     # --------------------------------------------------------
 
-    "Bergfreunde": {
-        "base_url": "https://www.bergfreunde.nl",
-
-        "search_url": (
+    {
+        "store": "Bergfreunde",
+        "name": "Patagonia Triolet Jacket",
+        "url": (
             "https://www.bergfreunde.nl/"
-            "search/?q=Patagonia%20Triolet"
+            "patagonia-triolet-jacket-regenjas-bf/"
         ),
-
-        # Gratis verzending vanaf €69 in NL
-        "free_shipping_from": 69.00,
-        "shipping_cost": 4.95,
+        "shipping_mode": "free",
     },
 
 
@@ -177,96 +276,33 @@ STORES = {
     # BIKE24
     # --------------------------------------------------------
 
-    "Bike24": {
-        "base_url": "https://www.bike24.nl",
-
-        "search_url": (
-            "https://www.bike24.nl/search-result"
-            "?q=Patagonia%20Triolet"
+    {
+        "store": "Bike24",
+        "name": "Patagonia Triolet Heren Forge Grey / P6 Blue",
+        "url": (
+            "https://www.bike24.nl/"
+            "producten/938771"
         ),
-
-        "shipping_unknown": True,
+        "shipping_mode": "unknown",
     },
-}
 
-
-# ============================================================
-# TELEGRAM
-# ============================================================
-
-TELEGRAM_TOKEN = os.environ.get(
-    "TELEGRAM_BOT_TOKEN"
-)
-
-TELEGRAM_CHAT_ID = os.environ.get(
-    "TELEGRAM_CHAT_ID"
-)
-
-
-def telegram_message(text):
-    """Stuur bericht naar Telegram."""
-
-    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
-
-        print(
-            "Telegram secrets ontbreken."
-        )
-
-        print(text)
-
-        return
-
-    url = (
-        "https://api.telegram.org/"
-        f"bot{TELEGRAM_TOKEN}/sendMessage"
-    )
-
-    response = requests.post(
-        url,
-        data={
-            "chat_id": TELEGRAM_CHAT_ID,
-            "text": text,
-            "disable_web_page_preview": False,
-        },
-        timeout=20,
-    )
-
-    response.raise_for_status()
+]
 
 
 # ============================================================
 # HTTP
 # ============================================================
 
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/139.0 Safari/537.36"
-    ),
-    "Accept-Language": (
-        "nl-NL,nl;q=0.9,en;q=0.8"
-    ),
-}
-
-
-session = requests.Session()
-session.headers.update(HEADERS)
-
-
-def get_page(url):
-    """Download een pagina."""
-
+def fetch(url):
     print(f"GET {url}")
 
-    response = session.get(
+    response = requests.get(
         url,
-        timeout=30
+        headers=HEADERS,
+        timeout=TIMEOUT,
     )
 
     response.raise_for_status()
-
-    time.sleep(REQUEST_DELAY)
 
     return response.text
 
@@ -275,130 +311,100 @@ def get_page(url):
 # HULPFUNCTIES
 # ============================================================
 
-def normalize_text(text):
-    return re.sub(
-        r"\s+",
-        " ",
-        text or ""
-    ).strip()
+def clean_text(text):
+    if not text:
+        return ""
+
+    return re.sub(r"\s+", " ", text).strip()
 
 
-def parse_price(text):
+def normalize_price(value):
     """
-    Parse Nederlandse en internationale prijzen.
+    Zet verschillende prijsformaten om naar float.
 
     Voorbeelden:
     €419,95
     419,95
-    €1.299,95
+    € 419.95
     419.95
     """
 
-    if not text:
+    if value is None:
         return None
 
-    text = str(text).strip()
+    if isinstance(value, (int, float)):
+        return float(value)
 
-    # Nederlandse notatie
-    match = re.search(
-        r"€?\s*"
-        r"(\d{1,3}(?:\.\d{3})*"
-        r"(?:,\d{2})"
-        r"|\d+(?:,\d{2})?)",
-        text
-    )
+    value = str(value).strip()
 
-    if match:
+    # Valuta verwijderen
+    value = re.sub(r"[^\d,.]", "", value)
 
-        value = match.group(1)
+    if not value:
+        return None
 
-        value = value.replace(
-            ".",
-            ""
-        )
+    # Nederlands formaat: 419,95
+    if "," in value and "." in value:
+        # 1.419,95
+        if value.rfind(",") > value.rfind("."):
+            value = value.replace(".", "")
+            value = value.replace(",", ".")
+        else:
+            # 1,419.95
+            value = value.replace(",", "")
 
-        value = value.replace(
-            ",",
-            "."
-        )
+    elif "," in value:
+        value = value.replace(",", ".")
 
-        try:
-            return float(value)
-        except ValueError:
-            pass
-
-    # Internationale notatie
-    match = re.search(
-        r"€?\s*(\d+(?:\.\d{2}))",
-        text
-    )
-
-    if match:
-
-        try:
-            return float(
-                match.group(1)
-            )
-        except ValueError:
-            pass
-
-    return None
+    try:
+        return float(value)
+    except ValueError:
+        return None
 
 
-def is_triolet(text):
-    """
-    Controleert of tekst daadwerkelijk over een
-    Patagonia Triolet gaat.
-    """
-
-    if not text:
-        return False
-
-    text = text.lower()
+def is_valid_triolet(text):
+    text = clean_text(text).lower()
 
     return (
         "patagonia" in text
         and "triolet" in text
+        and (
+            "jacket" in text
+            or "jas" in text
+            or "jkt" in text
+            or "hardshell" in text
+            or "outdoor" in text
+        )
     )
 
 
 def is_mens_product(text):
-    """
-    Controleer of het om heren gaat.
-
-    We accepteren meerdere benamingen.
-    """
-
-    if not text:
-        return False
-
-    text = text.lower()
+    text = clean_text(text).lower()
 
     positive = [
         "heren",
+        "herenjas",
         "men",
+        "men's",
         "mens",
         "m's",
         "herren",
+        "homme",
     ]
 
     negative = [
         "dames",
+        "damesjas",
         "women",
+        "women's",
         "womens",
         "w's",
         "damen",
+        "femme",
     ]
 
-    has_positive = any(
-        word in text
-        for word in positive
-    )
-
-    has_negative = any(
-        word in text
-        for word in negative
-    )
+    has_positive = any(x in text for x in positive)
+    has_negative = any(x in text for x in negative)
 
     if has_negative and not has_positive:
         return False
@@ -406,1419 +412,579 @@ def is_mens_product(text):
     return has_positive
 
 
-def find_size_m(text):
-    """
-    Zoek expliciet naar maat M.
+# ============================================================
+# JSON-LD
+# ============================================================
 
-    LET OP:
-    Dit is alleen een fallback.
-    Per webshop proberen we eerst
-    product-specifieke informatie te gebruiken.
-    """
-
-    if not text:
-        return False
-
-    patterns = [
-
-        r"\bmaat\s*M\b",
-
-        r"\bsize\s*M\b",
-
-        r"\bM\s*(?:op voorraad|beschikbaar)\b",
-
-        r"\bM\s*(?:in stock|available)\b",
-
-        r"\bM\b",
-    ]
-
-    for pattern in patterns:
-
-        if re.search(
-            pattern,
-            text,
-            flags=re.I
-        ):
-            return True
-
-    return False
-
-
-def extract_json_ld(soup):
-    """
-    Haal JSON-LD productinformatie uit een pagina.
-    """
-
-    results = []
+def get_json_ld_objects(soup):
+    objects = []
 
     for script in soup.find_all(
         "script",
-        type="application/ld+json"
+        attrs={"type": "application/ld+json"},
     ):
-
-        raw = (
-            script.string
-            or script.get_text()
-        )
+        raw = script.string or script.get_text()
 
         if not raw:
             continue
 
         try:
-
-            data = json.loads(
-                raw
-            )
-
+            data = json.loads(raw)
         except Exception:
             continue
 
         if isinstance(data, list):
-
-            results.extend(
-                data
-            )
-
+            objects.extend(data)
         else:
+            objects.append(data)
 
-            results.append(
-                data
-            )
-
-    return results
+    return objects
 
 
-def find_json_ld_price(soup):
-    """
-    Zoek prijs in Product/Offer JSON-LD.
-    """
-
-    for item in extract_json_ld(soup):
-
-        if not isinstance(
-            item,
-            dict
-        ):
-            continue
-
-        offers = item.get(
-            "offers"
-        )
-
-        if isinstance(
-            offers,
-            dict
-        ):
-
-            price = offers.get(
-                "price"
-            )
-
-            parsed = parse_price(
-                price
-            )
-
-            if parsed is not None:
-                return parsed
-
-        if isinstance(
-            offers,
-            list
-        ):
-
-            for offer in offers:
-
-                if not isinstance(
-                    offer,
-                    dict
-                ):
-                    continue
-
-                price = offer.get(
-                    "price"
-                )
-
-                parsed = parse_price(
-                    price
-                )
-
-                if parsed is not None:
-                    return parsed
-
-    return None
-
-
-def find_json_ld_url(soup):
-    """
-    Zoek product-URL uit JSON-LD.
-    """
-
-    for item in extract_json_ld(soup):
-
-        if not isinstance(
-            item,
-            dict
-        ):
-            continue
-
-        url = item.get(
-            "url"
-        )
-
-        if url:
-            return url
-
-    return None
-
-
-def calculate_shipping(
-    store_name,
-    price
-):
-    """
-    Bereken verzendkosten.
-
-    Als we het niet betrouwbaar weten,
-    retourneren we None.
-    """
-
-    config = STORES[
-        store_name
-    ]
-
-    if price is None:
-        return None
-
-    if config.get(
-        "shipping_unknown"
-    ):
-        return None
-
-    free_shipping_from = config.get(
-        "free_shipping_from"
-    )
-
-    shipping_cost = config.get(
-        "shipping_cost"
-    )
-
-    if (
-        free_shipping_from is not None
-        and price >= free_shipping_from
-    ):
-        return 0.00
-
-    if shipping_cost is not None:
-        return shipping_cost
-
-    return None
-
-
-# ============================================================
-# GENERIEKE LINK-VIND FUNCTIE
-# ============================================================
-
-def find_triolet_links(
-    html,
-    base_url
-):
-    """
-    Zoek Triolet-productlinks in een zoek-
-    of categoriepagina.
-    """
-
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
-    )
-
-    results = []
-
-    for link in soup.find_all(
-        "a",
-        href=True
-    ):
-
-        href = link.get(
-            "href"
-        )
-
-        if not href:
-            continue
-
-        text = normalize_text(
-            link.get_text(
-                " ",
-                strip=True
-            )
-        )
-
-        combined = (
-            f"{text} {href}"
-        ).lower()
-
-        if not is_triolet(
-            combined
-        ):
-            continue
-
-        # Geen damesproducten
-        if any(
-            word in combined
-            for word in [
-                "women",
-                "womens",
-                "w's",
-                "dames",
-                "damen",
-            ]
-        ):
-
-            continue
-
-        url = urljoin(
-            base_url,
-            href
-        )
-
-        if url not in results:
-
-            results.append(
-                url
-            )
-
-    return results
-
-
-# ============================================================
-# KATHMANDU PARSER
-# ============================================================
-
-def search_kathmandu():
-
-    store = STORES[
-        "Kathmandu"
-    ]
-
+def extract_json_ld_product(soup):
     products = []
 
-    for url in store["urls"]:
+    for obj in get_json_ld_objects(soup):
 
-        products.append({
-            "store": "Kathmandu",
-            "model": TARGET_MODEL,
-            "url": url,
-        })
+        if not isinstance(obj, dict):
+            continue
+
+        obj_type = obj.get("@type")
+
+        if isinstance(obj_type, list):
+            types = obj_type
+        else:
+            types = [obj_type]
+
+        if "Product" in types:
+            products.append(obj)
+
+        graph = obj.get("@graph")
+
+        if isinstance(graph, list):
+            for item in graph:
+                if (
+                    isinstance(item, dict)
+                    and item.get("@type") == "Product"
+                ):
+                    products.append(item)
 
     return products
 
 
-def parse_kathmandu(
-    product_ref
-):
+def price_from_json_ld(soup):
+    products = extract_json_ld_product(soup)
 
-    html = get_page(
-        product_ref["url"]
-    )
+    for product in products:
 
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
-    )
+        offers = product.get("offers")
 
-    text = normalize_text(
-        soup.get_text(
-            " ",
-            strip=True
-        )
-    )
+        if isinstance(offers, dict):
+            offers = [offers]
 
-    title = (
-        normalize_text(
-            soup.title.get_text()
-        )
-        if soup.title
-        else None
-    )
+        if not isinstance(offers, list):
+            continue
 
-    price = None
+        for offer in offers:
 
-    for element in soup.select(
-        "#jq-productpagina-prijs .amount"
-    ):
+            if not isinstance(offer, dict):
+                continue
 
-        price = parse_price(
-            element.get_text(
-                " ",
-                strip=True
-            )
-        )
-
-        if price is not None:
-            break
-
-    if price is None:
-
-        price = find_json_ld_price(
-            soup
-        )
-
-    size_m = find_size_m(
-        text
-    )
-
-    shipping = calculate_shipping(
-        "Kathmandu",
-        price
-    )
-
-    total = (
-        price + shipping
-        if price is not None
-        and shipping is not None
-        else None
-    )
-
-    return {
-        "store": "Kathmandu",
-        "model": TARGET_MODEL,
-        "url": product_ref["url"],
-        "title": title,
-        "price": price,
-        "shipping": shipping,
-        "total_price": total,
-        "size_m_available": size_m,
-    }
-
-
-# ============================================================
-# RONALD ADVENTURE SHOP PARSER
-# ============================================================
-
-def search_ronald():
-
-    store = STORES[
-        "Ronald Adventure Shop"
-    ]
-
-    html = get_page(
-        store["search_url"]
-    )
-
-    links = find_triolet_links(
-        html,
-        store["base_url"]
-    )
-
-    return [
-        {
-            "store": "Ronald Adventure Shop",
-            "model": TARGET_MODEL,
-            "url": url,
-        }
-        for url in links
-    ]
-
-
-def parse_ronald(
-    product_ref
-):
-
-    html = get_page(
-        product_ref["url"]
-    )
-
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
-    )
-
-    text = normalize_text(
-        soup.get_text(
-            " ",
-            strip=True
-        )
-    )
-
-    title = (
-        normalize_text(
-            soup.title.get_text()
-        )
-        if soup.title
-        else None
-    )
-
-    price = find_json_ld_price(
-        soup
-    )
-
-    if price is None:
-
-        selectors = [
-            ".price",
-            ".product-price",
-            ".special-price",
-            ".final-price",
-        ]
-
-        for selector in selectors:
-
-            for element in soup.select(
-                selector
-            ):
-
-                price = parse_price(
-                    element.get_text(
-                        " ",
-                        strip=True
-                    )
-                )
-
-                if price is not None:
-                    break
-
-            if price is not None:
-                break
-
-    if price is None:
-        price = parse_price(
-            text
-        )
-
-    size_m = find_size_m(
-        text
-    )
-
-    shipping = calculate_shipping(
-        "Ronald Adventure Shop",
-        price
-    )
-
-    total = (
-        price + shipping
-        if price is not None
-        and shipping is not None
-        else None
-    )
-
-    return {
-        "store": "Ronald Adventure Shop",
-        "model": TARGET_MODEL,
-        "url": product_ref["url"],
-        "title": title,
-        "price": price,
-        "shipping": shipping,
-        "total_price": total,
-        "size_m_available": size_m,
-    }
-
-
-# ============================================================
-# BEVER PARSER
-# ============================================================
-
-def search_bever():
-
-    store = STORES[
-        "Bever"
-    ]
-
-    html = get_page(
-        store["search_url"]
-    )
-
-    links = find_triolet_links(
-        html,
-        store["base_url"]
-    )
-
-    return [
-        {
-            "store": "Bever",
-            "model": TARGET_MODEL,
-            "url": url,
-        }
-        for url in links
-    ]
-
-
-def parse_bever(
-    product_ref
-):
-
-    html = get_page(
-        product_ref["url"]
-    )
-
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
-    )
-
-    text = normalize_text(
-        soup.get_text(
-            " ",
-            strip=True
-        )
-    )
-
-    title = (
-        normalize_text(
-            soup.title.get_text()
-        )
-        if soup.title
-        else None
-    )
-
-    price = find_json_ld_price(
-        soup
-    )
-
-    if price is None:
-
-        # Veel gebruikte prijsselectors
-        selectors = [
-            '[data-testid*="price"]',
-            '[class*="price"]',
-            '[data-test*="price"]',
-        ]
-
-        for selector in selectors:
-
-            for element in soup.select(
-                selector
-            ):
-
-                candidate = normalize_text(
-                    element.get_text(
-                        " ",
-                        strip=True
-                    )
-                )
-
-                if "€" not in candidate:
-                    continue
-
-                price = parse_price(
-                    candidate
-                )
-
-                if price is not None:
-                    break
-
-            if price is not None:
-                break
-
-    size_m = find_size_m(
-        text
-    )
-
-    # Bever verzendkosten worden bewust
-    # niet gegokt.
-    shipping = None
-
-    return {
-        "store": "Bever",
-        "model": TARGET_MODEL,
-        "url": product_ref["url"],
-        "title": title,
-        "price": price,
-        "shipping": shipping,
-        "total_price": None,
-        "size_m_available": size_m,
-    }
-
-
-# ============================================================
-# ZALANDO PARSER
-# ============================================================
-
-def search_zalando():
-
-    store = STORES[
-        "Zalando"
-    ]
-
-    html = get_page(
-        store["search_url"]
-    )
-
-    links = find_triolet_links(
-        html,
-        store["base_url"]
-    )
-
-    return [
-        {
-            "store": "Zalando",
-            "model": TARGET_MODEL,
-            "url": url,
-        }
-        for url in links
-    ]
-
-
-def parse_zalando(
-    product_ref
-):
-
-    html = get_page(
-        product_ref["url"]
-    )
-
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
-    )
-
-    text = normalize_text(
-        soup.get_text(
-            " ",
-            strip=True
-        )
-    )
-
-    title = (
-        normalize_text(
-            soup.title.get_text()
-        )
-        if soup.title
-        else None
-    )
-
-    price = find_json_ld_price(
-        soup
-    )
-
-    if price is None:
-
-        # Zalando gebruikt regelmatig
-        # meta/itemprop prijsinformatie.
-        meta_selectors = [
-            'meta[property="product:price:amount"]',
-            'meta[itemprop="price"]',
-        ]
-
-        for selector in meta_selectors:
-
-            element = soup.select_one(
-                selector
+            price = normalize_price(
+                offer.get("price")
             )
 
-            if element:
+            if price is not None and price > 0:
+                return price
 
-                value = (
-                    element.get("content")
-                    or element.get("value")
-                    or element.get_text()
-                )
-
-                price = parse_price(
-                    value
-                )
-
-                if price is not None:
-                    break
-
-    size_m = find_size_m(
-        text
-    )
-
-    return {
-        "store": "Zalando",
-        "model": TARGET_MODEL,
-        "url": product_ref["url"],
-        "title": title,
-        "price": price,
-        "shipping": None,
-        "total_price": None,
-        "size_m_available": size_m,
-    }
+    return None
 
 
 # ============================================================
-# BERGZEIT PARSER
+# PRIJS UIT HTML
 # ============================================================
 
-def search_bergzeit():
+PRICE_PATTERNS = [
+    r"€\s*([0-9]{1,4}(?:[.,][0-9]{2})?)",
+    r"EUR\s*([0-9]{1,4}(?:[.,][0-9]{2})?)",
+]
 
-    store = STORES[
-        "Bergzeit"
+
+def extract_prices_from_text(text):
+    prices = []
+
+    for pattern in PRICE_PATTERNS:
+        for match in re.findall(pattern, text, flags=re.I):
+            price = normalize_price(match)
+
+            if price is None:
+                continue
+
+            # Alleen realistische kledingprijzen
+            if 50 <= price <= 2000:
+                prices.append(price)
+
+    return prices
+
+
+def price_from_meta(soup):
+    meta_names = [
+        "product:price:amount",
+        "og:price:amount",
+        "price",
     ]
 
-    # De actuele herenpagina is stabieler
-    # dan de algemene zoekpagina.
-    url = (
-        "https://www.bergzeit.nl/p/"
-        "patagonia-heren-triolet-jas/1119573/"
-    )
+    for name in meta_names:
+        tag = soup.find(
+            "meta",
+            attrs={"property": name},
+        )
 
-    return [
-        {
-            "store": "Bergzeit",
-            "model": TARGET_MODEL,
-            "url": url,
-        }
+        if not tag:
+            tag = soup.find(
+                "meta",
+                attrs={"name": name},
+            )
+
+        if tag:
+            price = normalize_price(
+                tag.get("content")
+            )
+
+            if price is not None and price > 0:
+                return price
+
+    return None
+
+
+def extract_price(soup):
+    # 1. JSON-LD
+    price = price_from_json_ld(soup)
+
+    if price is not None:
+        return price
+
+    # 2. Meta tags
+    price = price_from_meta(soup)
+
+    if price is not None:
+        return price
+
+    # 3. Specifieke prijs-elementen
+    selectors = [
+        "[itemprop='price']",
+        "[data-testid*='price']",
+        "[class*='price']",
+        "[class*='Price']",
+        "[class*='prijs']",
+        "[class*='Price']",
     ]
 
+    candidates = []
 
-def parse_bergzeit(
-    product_ref
-):
-
-    html = get_page(
-        product_ref["url"]
-    )
-
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
-    )
-
-    text = normalize_text(
-        soup.get_text(
-            " ",
-            strip=True
-        )
-    )
-
-    title = (
-        normalize_text(
-            soup.title.get_text()
-        )
-        if soup.title
-        else None
-    )
-
-    price = find_json_ld_price(
-        soup
-    )
-
-    if price is None:
-        price = parse_price(
-            text
-        )
-
-    size_m = find_size_m(
-        text
-    )
-
-    return {
-        "store": "Bergzeit",
-        "model": TARGET_MODEL,
-        "url": product_ref["url"],
-        "title": title,
-        "price": price,
-        "shipping": None,
-        "total_price": None,
-        "size_m_available": size_m,
-    }
-
-
-# ============================================================
-# SNOWLEADER PARSER
-# ============================================================
-
-def search_snowleader():
-
-    store = STORES[
-        "Snowleader"
-    ]
-
-    html = get_page(
-        store["search_url"]
-    )
-
-    links = find_triolet_links(
-        html,
-        store["base_url"]
-    )
-
-    return [
-        {
-            "store": "Snowleader",
-            "model": TARGET_MODEL,
-            "url": url,
-        }
-        for url in links
-    ]
-
-
-def parse_snowleader(
-    product_ref
-):
-
-    html = get_page(
-        product_ref["url"]
-    )
-
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
-    )
-
-    text = normalize_text(
-        soup.get_text(
-            " ",
-            strip=True
-        )
-    )
-
-    title = (
-        normalize_text(
-            soup.title.get_text()
-        )
-        if soup.title
-        else None
-    )
-
-    price = find_json_ld_price(
-        soup
-    )
-
-    if price is None:
-
-        # Snowleader gebruikt meerdere
-        # prijsblokken.
-        selectors = [
-            '[itemprop="price"]',
-            '[data-price]',
-            ".price",
-        ]
-
-        for selector in selectors:
-
-            for element in soup.select(
-                selector
-            ):
-
-                value = (
-                    element.get(
-                        "content"
-                    )
-                    or element.get(
-                        "data-price"
-                    )
-                    or element.get_text(
-                        " ",
-                        strip=True
-                    )
-                )
-
-                price = parse_price(
-                    value
-                )
-
-                if price is not None:
-                    break
-
-            if price is not None:
-                break
-
-    size_m = find_size_m(
-        text
-    )
-
-    return {
-        "store": "Snowleader",
-        "model": TARGET_MODEL,
-        "url": product_ref["url"],
-        "title": title,
-        "price": price,
-        "shipping": None,
-        "total_price": None,
-        "size_m_available": size_m,
-    }
-
-
-# ============================================================
-# EKOSPORT PARSER
-# ============================================================
-
-def search_ekosport():
-
-    store = STORES[
-        "Ekosport"
-    ]
-
-    html = get_page(
-        store["search_url"]
-    )
-
-    links = find_triolet_links(
-        html,
-        store["base_url"]
-    )
-
-    return [
-        {
-            "store": "Ekosport",
-            "model": TARGET_MODEL,
-            "url": url,
-        }
-        for url in links
-    ]
-
-
-def parse_ekosport(
-    product_ref
-):
-
-    html = get_page(
-        product_ref["url"]
-    )
-
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
-    )
-
-    text = normalize_text(
-        soup.get_text(
-            " ",
-            strip=True
-        )
-    )
-
-    title = (
-        normalize_text(
-            soup.title.get_text()
-        )
-        if soup.title
-        else None
-    )
-
-    price = find_json_ld_price(
-        soup
-    )
-
-    if price is None:
-
-        selectors = [
-            '[itemprop="price"]',
-            '[data-price]',
-            ".price",
-        ]
-
-        for selector in selectors:
-
-            for element in soup.select(
-                selector
-            ):
-
-                value = (
-                    element.get(
-                        "content"
-                    )
-                    or element.get(
-                        "data-price"
-                    )
-                    or element.get_text(
-                        " ",
-                        strip=True
-                    )
-                )
-
-                price = parse_price(
-                    value
-                )
-
-                if price is not None:
-                    break
-
-            if price is not None:
-                break
-
-    size_m = find_size_m(
-        text
-    )
-
-    return {
-        "store": "Ekosport",
-        "model": TARGET_MODEL,
-        "url": product_ref["url"],
-        "title": title,
-        "price": price,
-        "shipping": None,
-        "total_price": None,
-        "size_m_available": size_m,
-    }
-
-
-# ============================================================
-# BERGFREUNDE PARSER
-# ============================================================
-
-def search_bergfreunde():
-
-    store = STORES[
-        "Bergfreunde"
-    ]
-
-    # Actuele heren-Trioletpagina
-    url = (
-        "https://www.bergfreunde.nl/"
-        "patagonia-triolet-jacket-regenjas-bf/"
-    )
-
-    return [
-        {
-            "store": "Bergfreunde",
-            "model": TARGET_MODEL,
-            "url": url,
-        }
-    ]
-
-
-def parse_bergfreunde(
-    product_ref
-):
-
-    html = get_page(
-        product_ref["url"]
-    )
-
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
-    )
-
-    text = normalize_text(
-        soup.get_text(
-            " ",
-            strip=True
-        )
-    )
-
-    title = (
-        normalize_text(
-            soup.title.get_text()
-        )
-        if soup.title
-        else None
-    )
-
-    price = find_json_ld_price(
-        soup
-    )
-
-    if price is None:
-
-        selectors = [
-            '[itemprop="price"]',
-            '[data-testid*="price"]',
-            ".price",
-        ]
-
-        for selector in selectors:
-
-            for element in soup.select(
-                selector
-            ):
-
-                value = (
-                    element.get(
-                        "content"
-                    )
-                    or element.get_text(
-                        " ",
-                        strip=True
-                    )
-                )
-
-                price = parse_price(
-                    value
-                )
-
-                if price is not None:
-                    break
-
-            if price is not None:
-                break
-
-    size_m = find_size_m(
-        text
-    )
-
-    shipping = calculate_shipping(
-        "Bergfreunde",
-        price
-    )
-
-    total = (
-        price + shipping
-        if price is not None
-        and shipping is not None
-        else None
-    )
-
-    return {
-        "store": "Bergfreunde",
-        "model": TARGET_MODEL,
-        "url": product_ref["url"],
-        "title": title,
-        "price": price,
-        "shipping": shipping,
-        "total_price": total,
-        "size_m_available": size_m,
-    }
-
-
-# ============================================================
-# BIKE24 PARSER
-# ============================================================
-
-def search_bike24():
-
-    store = STORES[
-        "Bike24"
-    ]
-
-    html = get_page(
-        store["search_url"]
-    )
-
-    links = find_triolet_links(
-        html,
-        store["base_url"]
-    )
-
-    return [
-        {
-            "store": "Bike24",
-            "model": TARGET_MODEL,
-            "url": url,
-        }
-        for url in links
-    ]
-
-
-def parse_bike24(
-    product_ref
-):
-
-    html = get_page(
-        product_ref["url"]
-    )
-
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
-    )
-
-    text = normalize_text(
-        soup.get_text(
-            " ",
-            strip=True
-        )
-    )
-
-    title = (
-        normalize_text(
-            soup.title.get_text()
-        )
-        if soup.title
-        else None
-    )
-
-    price = find_json_ld_price(
-        soup
-    )
-
-    if price is None:
-
-        selectors = [
-            '[itemprop="price"]',
-            '[data-price]',
-            ".price",
-        ]
-
-        for selector in selectors:
-
-            for element in soup.select(
-                selector
-            ):
-
-                value = (
-                    element.get(
-                        "content"
-                    )
-                    or element.get(
-                        "data-price"
-                    )
-                    or element.get_text(
-                        " ",
-                        strip=True
-                    )
-                )
-
-                price = parse_price(
-                    value
-                )
-
-                if price is not None:
-                    break
-
-            if price is not None:
-                break
-
-    size_m = find_size_m(
-        text
-    )
-
-    return {
-        "store": "Bike24",
-        "model": TARGET_MODEL,
-        "url": product_ref["url"],
-        "title": title,
-        "price": price,
-        "shipping": None,
-        "total_price": None,
-        "size_m_available": size_m,
-    }
-
-
-# ============================================================
-# ZOEKFUNCTIES ALLE WEBSHOPS
-# ============================================================
-
-SEARCH_FUNCTIONS = {
-
-    "Kathmandu": search_kathmandu,
-
-    "Ronald Adventure Shop":
-        search_ronald,
-
-    "Bever":
-        search_bever,
-
-    "Zalando":
-        search_zalando,
-
-    "Bergzeit":
-        search_bergzeit,
-
-    "Snowleader":
-        search_snowleader,
-
-    "Ekosport":
-        search_ekosport,
-
-    "Bergfreunde":
-        search_bergfreunde,
-
-    "Bike24":
-        search_bike24,
-}
-
-
-# ============================================================
-# PARSERFUNCTIES ALLE WEBSHOPS
-# ============================================================
-
-PARSER_FUNCTIONS = {
-
-    "Kathmandu":
-        parse_kathmandu,
-
-    "Ronald Adventure Shop":
-        parse_ronald,
-
-    "Bever":
-        parse_bever,
-
-    "Zalando":
-        parse_zalando,
-
-    "Bergzeit":
-        parse_bergzeit,
-
-    "Snowleader":
-        parse_snowleader,
-
-    "Ekosport":
-        parse_ekosport,
-
-    "Bergfreunde":
-        parse_bergfreunde,
-
-    "Bike24":
-        parse_bike24,
-}
-
-
-# ============================================================
-# ALLE PRODUCTEN ZOEKEN
-# ============================================================
-
-def search_all_products():
-
-    products = []
-
-    for store_name, search_function in (
-        SEARCH_FUNCTIONS.items()
-    ):
-
-        print(
-            "\n------------------------------------------"
-        )
-
-        print(
-            f"Zoeken bij: {store_name}"
-        )
-
-        print(
-            "------------------------------------------"
-        )
+    for selector in selectors:
 
         try:
+            elements = soup.select(selector)
+        except Exception:
+            continue
 
-            found = search_function()
+        for element in elements:
 
-            print(
-                f"{store_name}: "
-                f"{len(found)} productpagina(s)"
+            text = clean_text(
+                element.get_text(" ", strip=True)
             )
 
-            products.extend(
-                found
+            if not text:
+                continue
+
+            candidates.extend(
+                extract_prices_from_text(text)
             )
 
-        except Exception as exc:
+            content = element.get("content")
 
-            print(
-                f"FOUT bij zoeken "
-                f"{store_name}: {exc}"
+            if content:
+                p = normalize_price(content)
+
+                if p is not None:
+                    candidates.append(p)
+
+    if candidates:
+
+        # We kiezen de laagste geldige prijs.
+        #
+        # Dit is belangrijk bij pagina's die bijvoorbeeld
+        # zowel "€419,95" als "€251,97" tonen.
+        return min(candidates)
+
+    return None
+
+
+# ============================================================
+# MAAT M
+# ============================================================
+
+SIZE_WORDS = {
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+}
+
+
+def element_is_disabled(element):
+    """
+    Controleert of een maatknop/selectie duidelijk
+    disabled of uitverkocht is.
+    """
+
+    attrs = " ".join(
+        [
+            str(element.get("class", "")),
+            str(element.get("aria-disabled", "")),
+            str(element.get("disabled", "")),
+            str(element.get("data-disabled", "")),
+            str(element.get("data-available", "")),
+            str(element.get("data-stock", "")),
+        ]
+    ).lower()
+
+    disabled_words = [
+        "disabled",
+        "unavailable",
+        "out-of-stock",
+        "outofstock",
+        "sold-out",
+        "soldout",
+        "niet beschikbaar",
+        "uitverkocht",
+    ]
+
+    if "disabled" in element.attrs:
+        return True
+
+    return any(
+        word in attrs
+        for word in disabled_words
+    )
+
+
+def find_size_m(soup, full_text):
+    """
+    Probeert eerst echte maatselectoren te vinden.
+
+    BELANGRIJK:
+    We gebruiken NIET meer simpelweg:
+        \\bM\\b
+
+    omdat dat bijvoorbeeld "model draagt maat M"
+    als voorraad kan interpreteren.
+    """
+
+    # --------------------------------------------------------
+    # 1. Buttons
+    # --------------------------------------------------------
+
+    for element in soup.find_all("button"):
+
+        text = clean_text(
+            element.get_text(" ", strip=True)
+        ).upper()
+
+        if text != TARGET_SIZE:
+            continue
+
+        if not element_is_disabled(element):
+            return True
+
+    # --------------------------------------------------------
+    # 2. Links
+    # --------------------------------------------------------
+
+    for element in soup.find_all("a"):
+
+        text = clean_text(
+            element.get_text(" ", strip=True)
+        ).upper()
+
+        if text != TARGET_SIZE:
+            continue
+
+        if not element_is_disabled(element):
+            return True
+
+    # --------------------------------------------------------
+    # 3. Option elementen
+    # --------------------------------------------------------
+
+    for element in soup.find_all("option"):
+
+        text = clean_text(
+            element.get_text(" ", strip=True)
+        ).upper()
+
+        if text != TARGET_SIZE:
+            continue
+
+        if not element_is_disabled(element):
+            return True
+
+    # --------------------------------------------------------
+    # 4. Inputs
+    # --------------------------------------------------------
+
+    for element in soup.find_all("input"):
+
+        value = str(
+            element.get("value", "")
+        ).strip().upper()
+
+        aria = str(
+            element.get("aria-label", "")
+        ).strip().upper()
+
+        label = str(
+            element.get("data-label", "")
+        ).strip().upper()
+
+        values = {
+            value,
+            aria,
+            label,
+        }
+
+        if TARGET_SIZE in values:
+
+            if not element_is_disabled(element):
+                return True
+
+    # --------------------------------------------------------
+    # 5. Gestructureerde maatdata in HTML
+    # --------------------------------------------------------
+
+    size_patterns = [
+        r'data-size=["\']M["\']',
+        r'data-value=["\']M["\']',
+        r'data-label=["\']M["\']',
+        r'data-option=["\']M["\']',
+        r'["\']size["\']\s*:\s*["\']M["\']',
+        r'["\']value["\']\s*:\s*["\']M["\']',
+    ]
+
+    html = str(soup)
+
+    for pattern in size_patterns:
+
+        matches = re.finditer(
+            pattern,
+            html,
+            flags=re.I,
+        )
+
+        for match in matches:
+
+            start = max(
+                0,
+                match.start() - 500,
             )
 
-    return products
+            end = min(
+                len(html),
+                match.end() + 500,
+            )
+
+            context = html[start:end].lower()
+
+            unavailable = [
+                "disabled",
+                "unavailable",
+                "outofstock",
+                "out-of-stock",
+                "soldout",
+                "sold-out",
+                "niet beschikbaar",
+                "uitverkocht",
+            ]
+
+            if not any(
+                word in context
+                for word in unavailable
+            ):
+                return True
+
+    return False
+
+
+# ============================================================
+# BESCHIKBAARHEID
+# ============================================================
+
+def detect_out_of_stock(soup, text):
+    combined = clean_text(
+        text
+    ).lower()
+
+    phrases = [
+        "uitverkocht",
+        "niet beschikbaar",
+        "out of stock",
+        "sold out",
+        "currently unavailable",
+        "momenteel niet beschikbaar",
+    ]
+
+    # Alleen gebruiken als er ook geen echte M-selector is.
+    for phrase in phrases:
+
+        if phrase in combined:
+            return True
+
+    return False
+
+
+# ============================================================
+# VERZENDING
+# ============================================================
+
+def calculate_shipping(product, price):
+
+    mode = product.get(
+        "shipping_mode",
+        "unknown",
+    )
+
+    if mode == "free":
+        return 0.0
+
+    if mode == "threshold":
+
+        threshold = product.get(
+            "free_shipping_from"
+        )
+
+        shipping_cost = product.get(
+            "shipping_cost"
+        )
+
+        if (
+            threshold is None
+            or shipping_cost is None
+        ):
+            return None
+
+        if price >= threshold:
+            return 0.0
+
+        return float(shipping_cost)
+
+    # We gaan GEEN verzendkosten gokken.
+    return None
 
 
 # ============================================================
 # PRODUCT PARSEN
 # ============================================================
 
-def parse_product(
-    product_ref
-):
+def parse_product(product, html):
 
-    store = product_ref[
-        "store"
-    ]
-
-    parser = PARSER_FUNCTIONS.get(
-        store
+    soup = BeautifulSoup(
+        html,
+        "html.parser",
     )
 
-    if parser is None:
+    page_text = clean_text(
+        soup.get_text(" ", strip=True)
+    )
 
-        raise ValueError(
-            f"Geen parser voor {store}"
+    title = ""
+
+    if soup.title:
+        title = clean_text(
+            soup.title.get_text()
         )
 
-    return parser(
-        product_ref
+    # JSON-LD productinformatie
+    json_products = extract_json_ld_product(
+        soup
     )
+
+    json_name = ""
+
+    for jp in json_products:
+
+        name = jp.get("name")
+
+        if name:
+            json_name = clean_text(
+                str(name)
+            )
+            break
+
+    identity_text = " ".join(
+        [
+            product.get("name", ""),
+            title,
+            json_name,
+            page_text[:5000],
+        ]
+    )
+
+    is_triolet = is_valid_triolet(
+        identity_text
+    )
+
+    is_mens = is_mens_product(
+        identity_text
+    )
+
+    price = extract_price(soup)
+
+    size_m_available = find_size_m(
+        soup,
+        page_text,
+    )
+
+    out_of_stock = detect_out_of_stock(
+        soup,
+        page_text,
+    )
+
+    # Als de pagina expliciet uitverkocht zegt,
+    # markeren we M niet als beschikbaar.
+    if out_of_stock:
+        size_m_available = False
+
+    shipping = calculate_shipping(
+        product,
+        price,
+    )
+
+    if (
+        price is not None
+        and shipping is not None
+    ):
+        total_price = round(
+            price + shipping,
+            2,
+        )
+    else:
+        total_price = None
+
+    return {
+        "store": product["store"],
+        "name": product["name"],
+        "url": product["url"],
+        "price": price,
+        "shipping": shipping,
+        "total_price": total_price,
+        "size_m_available": size_m_available,
+        "is_triolet": is_triolet,
+        "is_mens": is_mens,
+        "out_of_stock": out_of_stock,
+    }
 
 
 # ============================================================
@@ -1831,52 +997,42 @@ def load_state():
         return {}
 
     try:
+        with STATE_FILE.open(
+            "r",
+            encoding="utf-8",
+        ) as f:
+            return json.load(f)
 
-        return json.loads(
-            STATE_FILE.read_text(
-                encoding="utf-8"
-            )
+    except Exception as exc:
+
+        print(
+            f"WAARSCHUWING: state.json kon niet "
+            f"worden gelezen: {exc}"
         )
-
-    except Exception:
 
         return {}
 
 
 def save_state(state):
 
-    STATE_FILE.write_text(
-        json.dumps(
-            state,
-            indent=2,
-            ensure_ascii=False
-        ),
+    with STATE_FILE.open(
+        "w",
         encoding="utf-8",
-    )
+    ) as f:
 
-
-# ============================================================
-# PRODUCT KEY
-# ============================================================
-
-def product_key(
-    product
-):
-
-    return (
-        f"{product['store']}|"
-        f"{product['url']}"
-    )
+        json.dump(
+            state,
+            f,
+            indent=2,
+            ensure_ascii=False,
+        )
 
 
 # ============================================================
 # ALERT LOGICA
 # ============================================================
 
-def should_alert(
-    product,
-    old
-):
+def should_alert(product, old):
 
     price = product.get(
         "price"
@@ -1886,458 +1042,395 @@ def should_alert(
         "total_price"
     )
 
-    # --------------------------------------------------------
-    # Geen betrouwbare totaalprijs
-    # --------------------------------------------------------
-
-    if (
-        price is None
-        or total_price is None
-    ):
-
+    if price is None:
         return False, None
 
-    # --------------------------------------------------------
-    # Alleen maat M
-    # --------------------------------------------------------
+    if total_price is None:
+        return False, None
 
     if not product.get(
         "size_m_available",
-        False
+        False,
     ):
-
         return False, None
 
     # --------------------------------------------------------
-    # Onder limiet
+    # Eerste keer gezien
     # --------------------------------------------------------
 
-    under_limit = (
-        total_price <= MAX_TOTAL_PRICE
+    if old is None:
+
+        if total_price <= MAX_TOTAL_PRICE:
+            return True, "PRICE"
+
+        return False, None
+
+    old_total = old.get(
+        "total_price"
     )
 
-    # --------------------------------------------------------
-    # Grote prijsdaling
-    # --------------------------------------------------------
-
-    price_drop = False
-
-    if old:
-
+    if old_total is None:
         old_total = old.get(
-            "total_price"
+            "price"
         )
 
-        if (
-            old_total is not None
-            and old_total > total_price
-        ):
-
-            drop_percent = (
-                (
-                    old_total
-                    - total_price
-                )
-                / old_total
-                * 100
-            )
-
-            if (
-                drop_percent
-                >= MIN_PRICE_DROP_PERCENT
-            ):
-
-                price_drop = True
+    if old_total is None:
+        return False, None
 
     # --------------------------------------------------------
-    # Nieuwe aanbieding
+    # Onder de grens gekomen
     # --------------------------------------------------------
 
     if (
-        old is None
-        and under_limit
+        old_total > MAX_TOTAL_PRICE
+        and total_price <= MAX_TOTAL_PRICE
     ):
-
         return True, "PRICE"
 
     # --------------------------------------------------------
-    # Prijs passeert de limiet
+    # 10%+ prijsdaling
     # --------------------------------------------------------
 
-    if old:
+    if total_price < old_total:
 
-        old_total = old.get(
-            "total_price"
+        drop_percent = (
+            (old_total - total_price)
+            / old_total
+            * 100
         )
 
-        if (
-            old_total is not None
-            and old_total > MAX_TOTAL_PRICE
-            and under_limit
-        ):
-
-            return True, "PRICE"
-
-    # --------------------------------------------------------
-    # Grote daling
-    # --------------------------------------------------------
-
-    if price_drop:
-
-        return True, "DROP"
+        if drop_percent >= MIN_PRICE_DROP_PERCENT:
+            return True, "DROP"
 
     return False, None
 
 
 # ============================================================
-# TELEGRAM MELDING
+# TELEGRAM
 # ============================================================
 
-def format_alert(
-    product,
-    alert_type,
-    old
-):
+def send_telegram(message):
 
-    store = product[
-        "store"
-    ]
+    import os
 
-    price = product[
-        "price"
-    ]
+    token = os.environ.get(
+        "TELEGRAM_BOT_TOKEN"
+    )
 
-    shipping = product[
-        "shipping"
-    ]
+    chat_id = os.environ.get(
+        "TELEGRAM_CHAT_ID"
+    )
 
-    total = product[
-        "total_price"
-    ]
+    if not token or not chat_id:
 
-    if alert_type == "PRICE":
-
-        headline = (
-            "🔥 PATAGONIA TRIOLET DEAL"
+        print(
+            "WAARSCHUWING: Telegram secrets "
+            "ontbreken. Geen bericht verzonden."
         )
+
+        return
+
+    url = (
+        f"https://api.telegram.org/bot"
+        f"{token}/sendMessage"
+    )
+
+    payload = {
+        "chat_id": chat_id,
+        "text": message,
+        "disable_web_page_preview": False,
+    }
+
+    try:
+
+        response = requests.post(
+            url,
+            json=payload,
+            timeout=20,
+        )
+
+        response.raise_for_status()
+
+        print("Telegram alert verzonden.")
+
+    except Exception as exc:
+
+        print(
+            f"FOUT bij Telegram: {exc}"
+        )
+
+
+def format_alert(product, alert_type):
+
+    if alert_type == "DROP":
+        title = "📉 PATAGONIA TRIOLET PRIJSVAL"
 
     else:
+        title = "🔥 PATAGONIA TRIOLET DEAL"
 
-        headline = (
-            "📉 PATAGONIA TRIOLET "
-            "PRIJS GEDAALD"
+    price = product["price"]
+    total = product["total_price"]
+
+    message = (
+        f"{title}\n\n"
+        f"🏪 {product['store']}\n"
+        f"🧥 {product['name']}\n"
+        f"📏 Maat: M\n"
+        f"💰 Productprijs: €{price:.2f}\n"
+    )
+
+    shipping = product.get(
+        "shipping"
+    )
+
+    if shipping is not None:
+
+        message += (
+            f"🚚 Verzending: "
+            f"€{shipping:.2f}\n"
         )
 
-    old_text = ""
-
-    if old:
-
-        old_total = old.get(
-            "total_price"
-        )
-
-        if (
-            old_total is not None
-            and old_total > total
-        ):
-
-            old_text = (
-                f"\nWas: €{old_total:.2f}"
-            )
-
-    shipping_text = (
-        f"€{shipping:.2f}"
-        if shipping is not None
-        else "onbekend"
+    message += (
+        f"💶 Totaal: €{total:.2f}\n"
+        f"🎯 Jouw grens: "
+        f"€{MAX_TOTAL_PRICE:.2f}\n\n"
+        f"🔗 {product['url']}"
     )
 
-    return (
-        f"{headline}\n\n"
-        f"{TARGET_MODEL}\n"
-        f"Winkel: {store}\n"
-        f"Maat: M\n\n"
-        f"Product: €{price:.2f}\n"
-        f"Verzending: {shipping_text}\n"
-        f"Totaal: €{total:.2f}"
-        f"{old_text}\n\n"
-        f"{product['url']}"
-    )
+    return message
 
 
 # ============================================================
-# DEBUG OUTPUT
-# ============================================================
-
-def print_product_result(
-    product
-):
-
-    print(
-        f"\n{product['store']}"
-    )
-
-    print(
-        f"  Product: "
-        f"{product['model']}"
-    )
-
-    print(
-        f"  URL: "
-        f"{product['url']}"
-    )
-
-    print(
-        f"  Prijs: "
-        f"{product['price']}"
-    )
-
-    print(
-        f"  Verzending: "
-        f"{product['shipping']}"
-    )
-
-    print(
-        f"  Totaal: "
-        f"{product['total_price']}"
-    )
-
-    print(
-        f"  M beschikbaar: "
-        f"{product['size_m_available']}"
-    )
-
-
-# ============================================================
-# MAIN
+# HOOFDPROGRAMMA
 # ============================================================
 
 def main():
 
-    print(
-        "=========================================="
-    )
-
-    print(
-        "PATAGONIA TRIOLET M PRICE MONITOR"
-    )
-
-    print(
-        "=========================================="
-    )
-
+    print()
+    print("=" * 42)
+    print("PATAGONIA TRIOLET M PRICE MONITOR")
+    print("=" * 42)
     print(
         f"Max totaalprijs: "
         f"€{MAX_TOTAL_PRICE:.2f}"
     )
-
     print(
-        f"Gezochte maat: "
-        f"{TARGET_SIZE}"
+        f"Gezochte maat: {TARGET_SIZE}"
     )
-
     print(
         f"Prijsdaling alert: "
         f"{MIN_PRICE_DROP_PERCENT:.1f}%"
     )
-
     print(
-        "Aantal winkels: "
-        f"{len(STORES)}"
+        f"Aantal productpagina's: "
+        f"{len(PRODUCTS)}"
     )
+    print("-" * 42)
 
     state = load_state()
 
-    if not isinstance(
-        state,
-        dict
-    ):
+    new_state = dict(state)
 
-        state = {}
+    found = 0
+    errors = 0
+    alerts = 0
 
-    # --------------------------------------------------------
-    # PRODUCTEN ZOEKEN
-    # --------------------------------------------------------
+    for product in PRODUCTS:
 
-    products = search_all_products()
-
-    print(
-        "\n=========================================="
-    )
-
-    print(
-        f"Totaal gevonden: "
-        f"{len(products)} productpagina's"
-    )
-
-    print(
-        "=========================================="
-    )
-
-    current_state = dict(
-        state
-    )
-
-    alerts = []
-
-    # --------------------------------------------------------
-    # PRODUCTEN CONTROLEREN
-    # --------------------------------------------------------
-
-    for product_ref in products:
+        print()
+        print("-" * 42)
+        print(
+            f"{product['store']} — "
+            f"{product['name']}"
+        )
+        print("-" * 42)
 
         try:
 
-            product = parse_product(
-                product_ref
+            html = fetch(
+                product["url"]
             )
 
-            print_product_result(
-                product
+            parsed = parse_product(
+                product,
+                html,
             )
 
-            key = product_key(
-                product
+            found += 1
+
+            key = (
+                f"{product['store']}|"
+                f"{product['url']}"
             )
 
-            old = state.get(
-                key
+            old = state.get(key)
+
+            print(
+                f"Product: "
+                f"{parsed['name']}"
             )
 
-            should, alert_type = (
+            print(
+                f"Prijs: "
+                f"{parsed['price']}"
+            )
+
+            print(
+                f"Verzending: "
+                f"{parsed['shipping']}"
+            )
+
+            print(
+                f"Totaal: "
+                f"{parsed['total_price']}"
+            )
+
+            print(
+                f"Triolet gedetecteerd: "
+                f"{parsed['is_triolet']}"
+            )
+
+            print(
+                f"Herenmodel: "
+                f"{parsed['is_mens']}"
+            )
+
+            print(
+                f"Maat M beschikbaar: "
+                f"{parsed['size_m_available']}"
+            )
+
+            print(
+                f"Uitverkocht: "
+                f"{parsed['out_of_stock']}"
+            )
+
+            # ------------------------------------------------
+            # Veiligheidscontrole
+            # ------------------------------------------------
+
+            if not parsed["is_triolet"]:
+
+                print(
+                    "WAARSCHUWING: dit lijkt "
+                    "geen Triolet-product."
+                )
+
+            if not parsed["is_mens"]:
+
+                print(
+                    "WAARSCHUWING: herenmodel "
+                    "niet bevestigd."
+                )
+
+            alert, alert_type = (
                 should_alert(
-                    product,
-                    old
+                    parsed,
+                    old,
                 )
             )
 
             print(
-                f"  ALERT: "
-                f"{should}"
+                f"ALERT: {alert}"
             )
 
             print(
-                f"  TYPE: "
-                f"{alert_type}"
+                f"TYPE: {alert_type}"
             )
 
-            # ------------------------------------------------
-            # TELEGRAM ALERT
-            # ------------------------------------------------
+            if alert:
 
-            if should:
+                # Extra veiligheidscontrole:
+                # alleen echte heren-Triolet.
+                if (
+                    parsed["is_triolet"]
+                    and parsed["is_mens"]
+                ):
 
-                alerts.append(
-                    format_alert(
-                        product,
+                    message = format_alert(
+                        parsed,
                         alert_type,
-                        old
                     )
-                )
+
+                    send_telegram(
+                        message
+                    )
+
+                    alerts += 1
+
+                else:
+
+                    print(
+                        "ALERT onderdrukt: "
+                        "productidentiteit niet "
+                        "voldoende bevestigd."
+                    )
 
             # ------------------------------------------------
-            # STATE
+            # State opslaan
             # ------------------------------------------------
 
-            current_state[key] = {
-
-                "store":
-                    product["store"],
-
-                "model":
-                    product["model"],
-
-                "url":
-                    product["url"],
-
-                "price":
-                    product["price"],
-
-                "shipping":
-                    product["shipping"],
-
-                "total_price":
-                    product["total_price"],
-
-                "size_m_available":
-                    product[
+            new_state[key] = {
+                "store": parsed["store"],
+                "name": parsed["name"],
+                "url": parsed["url"],
+                "price": parsed["price"],
+                "shipping": parsed["shipping"],
+                "total_price": parsed["total_price"],
+                "size_m_available": (
+                    parsed[
                         "size_m_available"
-                    ],
-
-                "checked_at":
-                    time.time(),
+                    ]
+                ),
+                "is_triolet": (
+                    parsed["is_triolet"]
+                ),
+                "is_mens": (
+                    parsed["is_mens"]
+                ),
             }
 
         except Exception as exc:
 
-            print(
-                "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-            )
+            errors += 1
 
             print(
                 f"FOUT bij "
-                f"{product_ref.get('store')}"
+                f"{product['store']}: "
+                f"{type(exc).__name__}: "
+                f"{exc}"
             )
 
-            print(
-                product_ref.get(
-                    "url"
-                )
-            )
-
-            print(
-                f"Foutmelding: {exc}"
-            )
-
-            print(
-                "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-            )
-
-    # --------------------------------------------------------
-    # TELEGRAM
-    # --------------------------------------------------------
-
-    print(
-        "\n=========================================="
-    )
-
-    print(
-        f"Alerts: {len(alerts)}"
-    )
-
-    print(
-        "=========================================="
-    )
-
-    for alert in alerts:
-
-        try:
-
-            telegram_message(
-                alert
-            )
-
-        except Exception as exc:
-
-            print(
-                f"Telegram fout: {exc}"
-            )
-
-    # --------------------------------------------------------
-    # STATE OPSLAAN
-    # --------------------------------------------------------
+        time.sleep(
+            REQUEST_DELAY
+        )
 
     save_state(
-        current_state
+        new_state
+    )
+
+    print()
+    print("=" * 42)
+    print("MONITOR KLAAR")
+    print("=" * 42)
+
+    print(
+        f"Pagina's verwerkt: {found}"
     )
 
     print(
-        "\nKlaar."
+        f"Fouten: {errors}"
     )
 
+    print(
+        f"Alerts: {alerts}"
+    )
 
-# ============================================================
-# START
-# ============================================================
+    print(
+        f"State opgeslagen in: "
+        f"{STATE_FILE}"
+    )
+
 
 if __name__ == "__main__":
     main()
